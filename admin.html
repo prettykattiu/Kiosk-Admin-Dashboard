@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiosk Printing Machine V2.0 — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <!-- App Root (React createRoot replacement) -->
+  <div id="app">
+
+    <!-- Header (DashboardHeader / UploadHeader) -->
+    <header class="app-header">
+      <div class="container header-inner">
+        <div class="brand">
+            <div class="brand-icon brand-icon--svg" aria-hidden="true">
+              <img src="svgviewer-output.svg" alt="Kiosk Logo" class="brand-logo">
+</div>
+          <div class="brand-text">
+            <h1 class="brand-title">Kiosk Printing Machine V2.0</h1>
+            <p id="headerSubtitle" class="brand-subtitle">Administrator Dashboard</p>
+          </div>
+        </div>
+
+        <div class="header-datetime">
+          <p id="headerDate" class="header-date">—</p>
+          <p id="headerTime" class="header-time">—</p>
+          <button id="logoutBtn" class="btn btn-outline btn-sm" type="button">
+            <i data-lucide="log-out" class="icon"></i>Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Pages (React Router replacement: hash router) -->
+    <main class="container main">
+
+      <!-- DASHBOARD PAGE -->
+      <section id="pageDashboard" class="page" data-route="/" aria-label="Dashboard">
+        <div class="grid grid-4 stats-grid" id="statsGrid"></div>
+        
+        <section class="section" id="pricingSection">
+          <div id="pricingCard"></div>
+        </section>
+
+        <!-- Transaction Analytics (CLEAN + consistent spacing like warnings) -->
+        <section class="section" id="txSection">
+          <div class="section-head">
+            <h2 class="section-title">Transaction Analytics</h2>
+            <div class="btn-group" role="group" aria-label="Time range">
+              <button class="btn btn-sm" data-range="daily">Daily</button>
+              <button class="btn btn-sm btn-outline" data-range="weekly">Weekly</button>
+              <button class="btn btn-sm btn-outline" data-range="monthly">Monthly</button>
+            </div>
+          </div>
+
+          <div id="transactionChartCard"></div>
+        </section>
+
+        <section class="grid grid-3 section">
+          <div class="col-span-2" id="logsCard"></div>
+          <div id="printingStatsCard"></div>
+        </section>
+      </section>
+
+      <!-- UPLOAD PAGE -->
+      <section id="pageUpload" class="page" data-route="/upload" hidden aria-label="Upload">
+        <div class="page-head">
+          <h2 class="page-title">Upload Files for Printing</h2>
+          <p class="page-subtitle">Upload your documents and receive a QR code to print at the kiosk</p>
+        </div>
+
+        <div class="grid grid-3 upload-grid">
+          <div class="col-span-2 stack">
+            <section id="uploadCard"></section>
+            <section id="uploadedListCard"></section>
+          </div>
+          <div>
+            <section id="qrCard" class="sticky"></section>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <div id="toasts" class="toasts" aria-live="polite" aria-relevant="additions"></div>
+  </div>
+
+  <!-- Templates (React components → templates + render functions) -->
+  <template id="tplCard">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"></div>
+      </div>
+      <div class="card-body"></div>
+    </div>
+  </template>
+
+  <template id="tplStatsCard">
+    <div class="card">
+      <div class="card-head row between">
+        <div class="meta">
+          <div class="eyebrow"></div>
+        </div>
+        <i class="icon" data-icon></i>
+      </div>
+      <div class="card-body">
+        <div class="stat-value"></div>
+        <div class="stat-trend" hidden></div>
+        <div class="stat-sub" hidden></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tplWarningItem">
+    <div class="warning-item">
+      <div class="warning-icon"><i class="icon" data-icon></i></div>
+      <div class="warning-main">
+        <div class="row between gap-8">
+          <p class="warning-msg"></p>
+          <span class="badge" data-badge></span>
+        </div>
+        <div class="warning-progress" hidden>
+          <div class="row between warning-progress-head">
+            <span class="warning-remaining"></span>
+            <span class="warning-percent"></span>
+          </div>
+          <div class="progress"><div class="progress-bar" data-bar></div></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tplLogItem">
+    <div class="log-item">
+      <div class="log-icon"><i class="icon" data-icon></i></div>
+      <div class="log-main">
+        <div class="row gap-8">
+          <span class="badge badge-sm" data-badge></span>
+          <span class="log-time"></span>
+        </div>
+        <p class="log-msg"></p>
+        <p class="log-details" hidden></p>
+      </div>
+    </div>
+  </template>
+
+  <template id="tplUploadedFile">
+    <div class="uploaded-file">
+      <div class="file-emoji"></div>
+      <div class="file-main">
+        <p class="file-name"></p>
+        <div class="file-meta"></div>
+        <div class="file-id"><span class="badge badge-outline badge-sm"></span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm file-remove" type="button" aria-label="Remove">
+        <i data-lucide="x" class="icon"></i>
+      </button>
+    </div>
+  </template>
+
+  <template id="tplToast">
+    <div class="toast">
+      <div class="toast-title"></div>
+      <div class="toast-desc"></div>
+    </div>
+  </template>
+
+  <script src="admin.js"></script>
+</body>
+</html>
